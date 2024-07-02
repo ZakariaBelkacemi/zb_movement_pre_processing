@@ -2,66 +2,65 @@
 
 function[movement_onsets,movement_durations] = zb_elbow_angle_flexion_detection(angle_vector)
 
-% angle_vector = movresult.croped_pos;
-% velocity_vector = movresult.croped_vel;
+temps = 1:numel(angle_vector);
+angles = angle_vector;
 
+% Variables de sortie
+debut = [];
+duree = [];
 
+% Seuil pour détecter le mouvement
+seuil = 100;
 
-[NegPValue,NegP] = findpeaks(-angle_vector,'MinPeakDistance',300,'MinPeakHeight',-mean(angle_vector));
+% Variables de contrôle
+en_mouvement = false;
+debut_mouvement = 0;
+dernier_pic = 0;
+lock_pic = 0;
+fin_mouvement_en_attente = 0;
 
-% [VelPValue,VelP] = findpeaks(velocity_vector,'MinPeakDistance',50,'MinPeakHeight',1.025*mean(velocity_vector));
-
-%plot(angle_vector)
-%hold on
-%plot(tvector(NegP),angle_vector(NegP),'*r')
-
-%%
-
-% % base_position = 0.95*mean(angle_vector(1:2500));%position de repos, environ 160°
-%1:2500 = au milieu du bloc de repos de début (1:3000)
-%facteur 0.9 pour rester un peu au dessous et détecter le seuil initial
-% % max_position = 0.75*mean(angle_vector(3000:6000));%position de mouvement effectué
-%3000:6000 = 1er bloc d'action
-
-movement_onsets = [];
-movement_durations = [];
-ascending = 2;
-for i=11:numel(angle_vector)%on commence à 11 pour évité d'être embêté par
-    %le "angle_vector(i-2)" alors qu'on est en phase
-    %de repos de toutes manières
-%     disp(['movement_onsets = ' movement_onsets])
-%     disp(['i = ' num2str(i)])
-    if ascending == 1%si c'est une montée de signal
-        if angle_vector(i-1)-angle_vector(i)>0.25 %si on détecte une descente
-            movement_durations(end+1) = i-movement_onsets(end);
-            movement_onsets(end+1) = i;
-            ascending = 0;
-        elseif angle_vector(i)-angle_vector(i-1)<0.25 %si on détecte un plat
-            if angle_vector(i)-angle_vector(i-50)<0.25 %on vérifie que c'est vraiment plat
-                ascending = 2;
-                movement_durations(end+1) = i-movement_onsets(end);
-            end
+% Parcourir la série temporelle
+for i = 2:length(angles)
+    % Détecter un pic local comme point de départ potentiel
+    if lock_pic == 0 && angles(i) < angles(i-1)        
+        if fin_mouvement_en_attente == 1
+            fin_mouvement = temps(i);
+            duree_mouvement = fin_mouvement - debut(end); % Calculer la durée à partir du dernier début détecté
+            duree = [duree; duree_mouvement]; % Ajouter la durée du mouvement
+            fin_mouvement_en_attente = 0;
         end
-    elseif ascending == 2%si c'est plat
-        if angle_vector(i-1)-angle_vector(i)>0.25 %si on détecte une descente
-            movement_onsets(end+1) = i;
-            ascending = 0;
-            disp('+++++++++++++++++++++++++++')
-            disp(movement_onsets)
-        end
-    elseif ascending == 0%si c'est une descente de signal
-        if angle_vector(i)-angle_vector(i-1)>0.25 %si on détecte une montée
-            ascending = 1;
-        end
+        
+        dernier_pic = i - 1; % Enregistrer le pic avant la baisse
+        lock_pic = 1;
+
+%         disp(['dernier pic ' num2str(dernier_pic)])
+    elseif angles(i) > angles(i-1)
+        lock_pic = 0;
     end
     
-    %le dernier mouvement peut ne pas être terminé, ce qui fera un mouvement
-    %onsets de plus que les movement durations donc on harmonise :
-    movement_onsets = movement_onsets(1:numel(movement_durations));
-    
-    movement_ends = movement_onsets+movement_durations;
-    
+    % Détecter le début du mouvement en dessous du seuil
+    if ~en_mouvement && angles(i) < seuil
+        % Début d'un mouvement confirmé
+        en_mouvement = true;
+        debut_mouvement = temps(dernier_pic);
+        debut = [debut; debut_mouvement]; % Ajouter le début exact du mouvement
+%         disp(['debut_mouvement ' num2str(debut_mouvement)])
+    elseif en_mouvement && angles(i) >= seuil
+        % Fin d'un mouvement
+        en_mouvement = false;
+        fin_mouvement = temps(i);
+        fin_mouvement_en_attente = 1;
+%         duree_mouvement = fin_mouvement - debut(end); % Calculer la durée à partir du dernier début détecté
+%         duree = [duree; duree_mouvement]; % Ajouter la durée du mouvement
+    end
 end
+
+movement_onsets = debut;
+movement_durations = duree;
+
+%le dernier mouvement peut ne pas ?tre termin?, ce qui fera un mouvement
+%onsets de plus que les movement durations donc on harmonise :
+movement_onsets = movement_onsets(1:numel(movement_durations));
 
 end
 

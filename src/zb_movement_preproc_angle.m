@@ -461,8 +461,8 @@ if keepOldMovSegment == 0
 %     [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_movement_detection(movresult.croped_pos,1.025*mean(movresult.croped_pos));
 %     [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_hand_opening_detection(movresult.croped_pos,movresult.croped_vel);
 %     [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_elbow_flexion_detection2(movresult.angular_amplitude);
-    [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_manual_mov_segmentation(movresult.angular_amplitude);
-%     [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_elbow_angle_flexion_detection(movresult.angular_amplitude);
+%     [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_manual_mov_segmentation(movresult.angular_amplitude);
+    [movresult.each_mov_onsets_upsample,movresult.each_mov_duration_upsample] = zb_elbow_angle_flexion_detection(movresult.angular_amplitude);
 else
     movresult.each_mov_onsets_upsample = oldMovOnsets;
     movresult.each_mov_duration_upsample = oldMovDurations;
