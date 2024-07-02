@@ -524,7 +524,7 @@ for iMov = 1:numel(movresult.each_mov_onsets_upsample)
         movresult.parametric_nTL(iMov) = sum(abs(diff(movresult.position(movbeg:end))))/ideal_trajectory_length;   
     else
         movresult.parametric_sparc(iMov)=SpectralArcLength(movresult.angular_velocity(movbeg:movend),1/movSamplFreq);%sparc de chaque mouvement, de la partie du vecteur de vitesse de début de mouvement à cette partie + durée du mouvement
-        movresult.parametric_velocity(iMov)=mean(abs(movresult.angular_velocity(movbeg:movend)));
+        movresult.parametric_velocity(iMov)=mean(abs(movresult.angular_velocity(movbeg:movend)))/movresult.each_mov_duration_upsample;
         movresult.parametric_acceleration(iMov)=mean(abs(movresult.angular_acceleration(movbeg:movend)));
         movresult.parametric_amplitude(iMov)=abs(max(movresult.angular_amplitude(movbeg:movend))-min(movresult.angular_amplitude(movbeg:movend)));
         %accuracy : normalized Trajectory Length, chemin vs baseline =
