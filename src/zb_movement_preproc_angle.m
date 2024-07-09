@@ -225,18 +225,17 @@ close(filterview);
 dangle = gradient(movresult.angular_amplitude);%in degree
 dt = gradient((1:numel(movresult.angular_amplitude))');%in cs
 movresult.angular_velocity = dangle./dt;%in degree/centisecond
-movresult.angular_velocity = movresult.angular_velocity*100;%in degree/sec
+movresult.angular_velocity = movresult.angular_velocity * movSamplFreq;%in degree/sec
 
 %calculating acceleration
 dangular_velocity = gradient(dangle);
-movresult.angular_acceleration = dangular_velocity./(dt.^2);%in degree/cs^-2
-movresult.angular_acceleration = movresult.angular_acceleration * (100^2);%in degree/s^-2
+movresult.angular_acceleration = dangular_velocity./dt;%in degree/cs^-2
+movresult.angular_acceleration = movresult.angular_acceleration * movSamplFreq;%in degree/s^-2
 
-%NOTE : possibilité de ne garder que les vitesses angulaires positives pour avoir
-%les descentes et les vitesses angulaires négatives pour avoir les montées
-
-%NOTE : beaucoup plus simple de segmenter le mouvement car on a l'angle
-%correspondant à la position neutre (160° environ)
+%calculating jerk
+dangular_acceleration = gradient(dangular_velocity);
+movresult.angular_jerk = dangular_acceleration./dt;%in degree/cs^3
+movresult.angular_jerk = movresult.angular_acceleration * movSamplFreq;%in degree/s^3
 
 %%
 %2) Moving average velocity
@@ -268,6 +267,7 @@ movresult.interpolated_averaged_angular_velocity = interp1([1:numel(movresult.av
 movresult.interpolated_angular_acceleration = interp1([1:numel(movresult.angular_acceleration)],movresult.angular_acceleration,[1:numel(movresult.angular_acceleration)/scanNumber:numel(movresult.angular_acceleration)],'pchip');
 movresult.interpolated_averaged_angular_acceleration = interp1([1:numel(movresult.averaged_angular_acceleration)],movresult.averaged_angular_acceleration,[1:numel(movresult.averaged_angular_acceleration)/scanNumber:numel(movresult.averaged_angular_acceleration)],'pchip');
 movresult.interpolated_position = interp1([1:numel(movresult.position)],movresult.position,[1:numel(movresult.position)/scanNumber:numel(movresult.position)],'pchip');
+movresult.interpolated_angular_jerk = interp1([1:numel(movresult.averaged_angular_jerk)],movresult.averaged_angular_jerk,[1:numel(movresult.averaged_angular_jerk)/scanNumber:numel(movresult.averaged_angular_jerk)],'pchip');
 
 %% 
 % %4) Part with a code i took from outside and that i do not completely understand
