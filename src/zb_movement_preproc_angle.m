@@ -267,7 +267,7 @@ movresult.interpolated_averaged_angular_velocity = interp1([1:numel(movresult.av
 movresult.interpolated_angular_acceleration = interp1([1:numel(movresult.angular_acceleration)],movresult.angular_acceleration,[1:numel(movresult.angular_acceleration)/scanNumber:numel(movresult.angular_acceleration)],'pchip');
 movresult.interpolated_averaged_angular_acceleration = interp1([1:numel(movresult.averaged_angular_acceleration)],movresult.averaged_angular_acceleration,[1:numel(movresult.averaged_angular_acceleration)/scanNumber:numel(movresult.averaged_angular_acceleration)],'pchip');
 movresult.interpolated_position = interp1([1:numel(movresult.position)],movresult.position,[1:numel(movresult.position)/scanNumber:numel(movresult.position)],'pchip');
-movresult.interpolated_angular_jerk = interp1([1:numel(movresult.averaged_angular_jerk)],movresult.averaged_angular_jerk,[1:numel(movresult.averaged_angular_jerk)/scanNumber:numel(movresult.averaged_angular_jerk)],'pchip');
+movresult.interpolated_angular_jerk = interp1([1:numel(movresult.angular_jerk)],movresult.angular_jerk,[1:numel(movresult.angular_jerk)/scanNumber:numel(movresult.angular_jerk)],'pchip');
 
 %% 
 % %4) Part with a code i took from outside and that i do not completely understand
@@ -318,7 +318,7 @@ end
 onsets = zeros(scanNumber,1);
 onsets = zb_onsetSimulation(onsetsNumber/2,onsetsDuration);
 mov_visu = figure('units','normalized','outerposition',[0 0 1 1]);
-plot(upfirdn(onsets,1,80)*max(abs(movresult.angular_velocity)),'y');
+plot(upfirdn(onsets,1,round(numel(movresult.angular_amplitude)/scanNumber))*max(abs(movresult.angular_velocity)),'y');
 % plot(onsets*max(movresult.interpolate_croped_vel),'b');
 hold on
 plot(abs(movresult.angular_velocity),'r');
@@ -357,7 +357,7 @@ iframe = 0;
 for iframe = 1:numel(movresult.real_onsets_vector)
     if movresult.real_onsets_vector(iframe) == 0
         nb_zeros = nb_zeros + 1;
-    elseif nb_zeros >= 10
+    elseif nb_zeros >= blockDurationByScan/2
         nb_zeros = 0;
     elseif nb_zeros >= 1 && movresult.real_onsets_vector(iframe) == 1
         movresult.real_onsets_vector(iframe-nb_zeros:iframe-1) = 1; % Modification of zeros in ones
@@ -468,8 +468,8 @@ else
     movresult.each_mov_duration_upsample = oldMovDurations;
 end
 
-movresult.each_mov_onsets_upsample_second = movresult.each_mov_onsets_upsample/100;%in second
-movresult.each_mov_duration_upsample_second = movresult.each_mov_duration_upsample/100;%in second
+movresult.each_mov_onsets_upsample_second = movresult.each_mov_onsets_upsample/movSamplFreq;%in second
+movresult.each_mov_duration_upsample_second = movresult.each_mov_duration_upsample/movSamplFreq;%in second
 
 %affichage
 peak_visu = figure('units','normalized','outerposition',[0 0 1 1]);
@@ -540,8 +540,8 @@ end
 movresult.mean_movement_time = mean(movresult.each_mov_duration_upsample)/100;
 
 %vecteur paramétrique par bloc
-upsampled_onsets_time = onsets_time * 100/1.25;
-upsampled_onsets_duration = 38 * 100/1.25;
+upsampled_onsets_time = onsets_time * movSamplFreq * repetitionTime;
+upsampled_onsets_duration = blockDurationByScan * movSamplFreq * repetitionTime;
 velocity_block1 = mean(abs(movresult.angular_velocity(upsampled_onsets_time(1):upsampled_onsets_time(1)+upsampled_onsets_duration)));
 velocity_block2 = mean(abs(movresult.angular_velocity(upsampled_onsets_time(2):upsampled_onsets_time(2)+upsampled_onsets_duration)));
 velocity_block3 = mean(abs(movresult.angular_velocity(upsampled_onsets_time(3):upsampled_onsets_time(3)+upsampled_onsets_duration)));
